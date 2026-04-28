@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-04-18
+
+### Added
+
+- `KIRO_DEBUG` env var for structured debug logging of requests, stream events, and responses with redacted auth tokens ([#57](https://github.com/mikeyobrien/pi-provider-kiro/pull/57))
+
+### Fixed
+
+- Recover from expired kiro-cli tokens on 403 by falling back to `refreshViaKiroCli()` instead of silently reusing the stale access token ([#57](https://github.com/mikeyobrien/pi-provider-kiro/pull/57))
+
+## [0.6.0] - 2026-04-18
+
+### Added
+
+- Claude Opus 4.7 model ([#54](https://github.com/mikeyobrien/pi-provider-kiro/pull/54))
+
+### Fixed
+
+- Accurate output token counting for tool-call turns ([#53](https://github.com/mikeyobrien/pi-provider-kiro/pull/53))
+- Eliminate echo loop caused by synthetic history padding ([#51](https://github.com/mikeyobrien/pi-provider-kiro/pull/51))
+
 ## [0.5.2] - 2026-04-16
 
 ### Fixed
