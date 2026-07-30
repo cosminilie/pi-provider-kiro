@@ -114,7 +114,7 @@ describe("Feature 1: Extension Registration", () => {
     mod.default(pi);
 
     const config = registerProvider.mock.calls[0][1];
-    expect(config.models).toHaveLength(15);
+    expect(config.models).toHaveLength(18);
   });
 
   // Regression: the factory used to await catalog discovery before registering,
