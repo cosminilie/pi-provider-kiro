@@ -39,7 +39,7 @@ describe("Feature 1: Extension Registration", () => {
     mod.default(pi);
 
     const config = registerProvider.mock.calls[0][1];
-    expect(config.models).toHaveLength(15);
+    expect(config.models).toHaveLength(18);
   });
 
   it("preserves the existing OAuth and kiro-cli credential contract", async () => {
