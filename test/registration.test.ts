@@ -108,13 +108,13 @@ describe("Feature 1: Extension Registration", () => {
     expect(registerProvider.mock.calls[0][0]).toBe("kiro");
   });
 
-  it("registers 15 models", async () => {
+  it("registers 21 models", async () => {
     const mod = await import("../src/index.js");
     const { pi, registerProvider } = mockPi();
     mod.default(pi);
 
     const config = registerProvider.mock.calls[0][1];
-    expect(config.models).toHaveLength(18);
+    expect(config.models).toHaveLength(21);
   });
 
   // Regression: the factory used to await catalog discovery before registering,
@@ -379,7 +379,7 @@ describe("Feature 1: Extension Registration", () => {
     expect(modified.every((model: { kiroProfileArn?: string }) => model.kiroProfileArn === profileArn)).toBe(true);
   });
 
-  it("modifyModels does not apply a hardcoded regional allowlist", async () => {
+  it("modifyModels excludes the US-East-only Fable model in Frankfurt", async () => {
     const mod = await import("../src/index.js");
     const { pi, registerProvider } = mockPi();
     await mod.default(pi);
@@ -389,7 +389,8 @@ describe("Feature 1: Extension Registration", () => {
     const creds = { access: "x", refresh: "x", expires: 0, clientId: "", clientSecret: "", region: "eu-west-1" };
     const modified = config.oauth.modifyModels(models, creds);
     const ids = modified.map((m: { id: string }) => m.id);
-    expect(modified).toHaveLength(models.length);
+    expect(modified).toHaveLength(models.length - 1);
+    expect(ids).not.toContain("claude-fable-5-1");
     expect(ids).toContain("deepseek-3-2");
     expect(ids).toContain("claude-sonnet-4-6");
   });

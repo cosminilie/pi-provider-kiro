@@ -27,6 +27,10 @@ const CLAUDE_MAX_EFFORT_VALUES = ["low", "medium", "high", "max"] as const;
 const EFFORT_ORDER = ["low", "medium", "high", "xhigh", "max"] as const;
 
 const CLAUDE_EXTENDED_EFFORT_MODELS = new Set([
+  "claude-opus-5.5",
+  "claude-opus-5",
+  "claude-opus-4.5",
+  "claude-fable-5.1",
   "claude-opus-4.8",
   "claude-opus-4.7",
   "claude-sonnet-5",

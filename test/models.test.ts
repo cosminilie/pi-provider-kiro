@@ -73,7 +73,7 @@ const catalogFixture: KiroCatalogModel[] = [
   { modelId: "qwen3-coder-next" },
   { modelId: "claude-fable-5.1" },
   {
-    modelId: "claude-fable-5",
+    modelId: "claude-fable-5.1",
     tokenLimits: { maxInputTokens: 1_000_000, maxOutputTokens: 128_000 },
     additionalModelRequestFieldsSchema: effortSchema("output_config", ["low", "medium", "high", "xhigh", "max"]),
   },
@@ -97,6 +97,9 @@ describe("Feature 2: Model Definitions", () => {
   describe("resolveKiroModel", () => {
     it.each([
       ["claude-opus-4-8", "claude-opus-4.8"],
+      ["claude-opus-5-5", "claude-opus-5.5"],
+      ["claude-opus-4-5", "claude-opus-4.5"],
+      ["claude-fable-5-1", "claude-fable-5.1"],
       ["claude-sonnet-5", "claude-sonnet-5"],
       ["claude-haiku-4-5", "claude-haiku-4.5"],
       ["deepseek-3-2", "deepseek-3.2"],
@@ -166,8 +169,8 @@ describe("Feature 2: Model Definitions", () => {
         maxTokens: 8_192,
       },
       {
-        id: "claude-fable-5",
-        kiroModelId: "claude-fable-5",
+        id: "claude-fable-5-1",
+        kiroModelId: "claude-fable-5.1",
         reasoning: true,
         thinkingLevelMap: { xhigh: "xhigh", max: "max" },
         contextWindow: 1_000_000,
@@ -332,11 +335,15 @@ describe("Feature 2: Model Definitions", () => {
       const legacyCache = JSON.stringify({ [TEST_REGION]: legacyModels });
       writeFileSync(LEGACY_CACHE_PATH, legacyCache, "utf-8");
 
-      expect(getCachedModels(TEST_REGION)).toBe(kiroModels);
+      expect(getCachedModels(TEST_REGION)).toEqual(
+        kiroModels.filter((model) => model.id !== "claude-fable-5-1"),
+      );
       expect(getCachedModels(TEST_REGION).some((model) => model.id === "legacy-only")).toBe(false);
 
       writeFileSync(KIRO_MANAGEMENT_CACHE_PATH, legacyCache, "utf-8");
-      expect(getCachedModels(TEST_REGION)).toBe(kiroModels);
+      expect(getCachedModels(TEST_REGION)).toEqual(
+        kiroModels.filter((model) => model.id !== "claude-fable-5-1"),
+      );
       expect(isCacheStale(TEST_REGION)).toBe(true);
     });
 
@@ -369,11 +376,17 @@ describe("Feature 2: Model Definitions", () => {
 
   describe("bootstrap model catalog", () => {
     it("keeps conservative, zero-cost bootstrap metadata", () => {
-      expect(kiroModels).toHaveLength(18);
+      expect(kiroModels).toHaveLength(21);
       expect(kiroModels.every((model) => model.baseUrl === "https://runtime.us-east-1.kiro.dev/")).toBe(true);
       expect(kiroModels.every((model) => model.cost.input === 0 && model.cost.output === 0)).toBe(true);
       expect(kiroModels.find((model) => model.id === "claude-haiku-4-5")?.reasoning).toBe(false);
       expect(kiroModels.find((model) => model.id === "minimax-m2-1")?.reasoning).toBe(false);
+    });
+
+    it("matches the screenshot context sizes for the GPT-5.6 family", () => {
+      for (const model of kiroModels.filter((candidate) => candidate.id.startsWith("gpt-5-6-"))) {
+        expect(model.contextWindow, model.id).toBe(1_000_000);
+      }
     });
 
     it("uses image input for Claude and text input for other concrete bootstrap models", () => {
@@ -381,6 +394,11 @@ describe("Feature 2: Model Definitions", () => {
       const nonClaudeModels = kiroModels.filter((model) => !model.id.startsWith("claude-") && model.id !== "auto");
       expect(claudeModels.every((model) => model.input.includes("text") && model.input.includes("image"))).toBe(true);
       expect(nonClaudeModels.every((model) => model.input.includes("text"))).toBe(true);
+    });
+
+    it("excludes the US-East-only Fable model from the Frankfurt bootstrap catalog", () => {
+      expect(getCachedModels("us-east-1").some((model) => model.id === "claude-fable-5-1")).toBe(true);
+      expect(getCachedModels("eu-central-1").some((model) => model.id === "claude-fable-5-1")).toBe(false);
     });
 
     it("disables text tool-call recovery only for Claude bootstrap models", () => {
@@ -397,7 +415,15 @@ describe("Feature 2: Model Definitions", () => {
     const THROUGH_HIGH = ["off", "minimal", "low", "medium", "high"] satisfies ModelThinkingLevel[];
     const THROUGH_XHIGH_AND_MAX = [...THROUGH_HIGH, "xhigh", "max"] satisfies ModelThinkingLevel[];
     const THROUGH_HIGH_AND_MAX = [...THROUGH_HIGH, "max"] satisfies ModelThinkingLevel[];
-    const XHIGH_AND_MAX_MODELS = ["claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-5"];
+    const XHIGH_AND_MAX_MODELS = [
+      "claude-opus-5-5",
+      "claude-opus-5",
+      "claude-opus-4-8",
+      "claude-opus-4-7",
+      "claude-opus-4-5",
+      "claude-fable-5-1",
+      "claude-sonnet-5",
+    ];
     const MAX_WITHOUT_XHIGH_MODELS = ["claude-opus-4-6", "claude-sonnet-4-6"];
 
     it("advertises xhigh and max independently when both are supported", () => {
