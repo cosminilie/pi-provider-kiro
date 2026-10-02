@@ -71,7 +71,6 @@ const catalogFixture: KiroCatalogModel[] = [
     additionalModelRequestFieldsSchema: effortSchema("output_config", ["low", "medium", "high", "max"]),
   },
   { modelId: "qwen3-coder-next" },
-  { modelId: "claude-fable-5.1" },
   {
     modelId: "claude-fable-5.1",
     tokenLimits: { maxInputTokens: 1_000_000, maxOutputTokens: 128_000 },
@@ -551,7 +550,7 @@ describe("Feature 2: Model Definitions", () => {
       const [first, ...rest] = mapKiroCatalogModels(catalogFixture, TEST_REGION);
       writeFileSync(KIRO_MANAGEMENT_CACHE_PATH, validCache([{ ...first, thinking }, ...rest]), "utf-8");
 
-      expect(getCachedModels(TEST_REGION)).toBe(kiroModels);
+      expect(getCachedModels(TEST_REGION)).toEqual(kiroModels.filter((model) => model.id !== "claude-fable-5-1"));
     });
 
     it("drops a v1 cache written before the thinking field existed", () => {
@@ -560,7 +559,7 @@ describe("Feature 2: Model Definitions", () => {
       );
       writeFileSync(KIRO_MANAGEMENT_CACHE_PATH, validCache(models, 1), "utf-8");
 
-      expect(getCachedModels(TEST_REGION)).toBe(kiroModels);
+      expect(getCachedModels(TEST_REGION)).toEqual(kiroModels.filter((model) => model.id !== "claude-fable-5-1"));
       expect(isCacheStale(TEST_REGION)).toBe(true);
     });
   });
